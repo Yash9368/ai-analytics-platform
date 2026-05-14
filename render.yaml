@@ -1,0 +1,48 @@
+# ============================================
+# Render Infrastructure as Code
+# ============================================
+# This file tells Render how to build and deploy
+# both the frontend and backend services.
+# Docs: https://render.com/docs/blueprint-spec
+# ============================================
+
+services:
+  # ---- Frontend (Next.js) ----
+  - type: web
+    name: ai-analytics-frontend
+    runtime: node
+    region: oregon
+    plan: free
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_API_URL
+        sync: false  # Set manually in Render dashboard
+      - key: PORT
+        value: 3000
+
+  # ---- Backend (FastAPI) — Phase 6 ----
+  # Uncomment when backend is ready for deployment
+  #
+  # - type: web
+  #   name: ai-analytics-backend
+  #   runtime: python
+  #   region: oregon
+  #   plan: free
+  #   rootDir: backend
+  #   buildCommand: pip install -r requirements.txt
+  #   startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+  #   envVars:
+  #     - key: PYTHON_VERSION
+  #       value: "3.11"
+  #     - key: GA4_PROPERTY_ID
+  #       sync: false
+  #     - key: GA4_CREDENTIALS_JSON
+  #       sync: false
+  #     - key: ANTHROPIC_API_KEY
+  #       sync: false
+  #     - key: FRONTEND_URL
+  #       sync: false
