@@ -1,0 +1,293 @@
+/* ============================================
+   AI Analytics Platform — Global Styles
+   Design System: Dark-mode first, glassmorphism,
+   vibrant gradients, smooth micro-animations
+   ============================================ */
+
+@import "tailwindcss";
+
+/* ============================================
+   CSS Custom Properties (Design Tokens)
+   ============================================ */
+:root {
+  /* --- Core Palette --- */
+  --bg-primary: #0a0a1a;
+  --bg-secondary: #111132;
+  --bg-card: rgba(20, 20, 55, 0.6);
+  --bg-card-hover: rgba(30, 30, 75, 0.8);
+  --bg-sidebar: rgba(10, 10, 35, 0.95);
+
+  /* --- Accent Colors --- */
+  --accent-blue: #4f8cff;
+  --accent-purple: #a855f7;
+  --accent-pink: #ec4899;
+  --accent-cyan: #22d3ee;
+  --accent-green: #34d399;
+  --accent-orange: #fb923c;
+  --accent-red: #f87171;
+
+  /* --- Gradients --- */
+  --gradient-primary: linear-gradient(135deg, #4f8cff 0%, #a855f7 100%);
+  --gradient-accent: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+  --gradient-success: linear-gradient(135deg, #34d399 0%, #22d3ee 100%);
+  --gradient-warm: linear-gradient(135deg, #fb923c 0%, #f87171 100%);
+  --gradient-bg: linear-gradient(180deg, #0a0a1a 0%, #111132 50%, #0a0a2e 100%);
+
+  /* --- Text --- */
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+
+  /* --- Borders --- */
+  --border-subtle: rgba(148, 163, 184, 0.1);
+  --border-accent: rgba(79, 140, 255, 0.3);
+
+  /* --- Glass Effect --- */
+  --glass-bg: rgba(255, 255, 255, 0.03);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+
+  /* --- Spacing --- */
+  --sidebar-width: 260px;
+  --header-height: 72px;
+
+  /* --- Transitions --- */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* --- Border Radius --- */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+}
+
+/* ============================================
+   Base Reset & Typography
+   ============================================ */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--gradient-bg);
+  color: var(--text-primary);
+  font-family: var(--font-geist-sans), "Inter", system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ============================================
+   Scrollbar Styling
+   ============================================ */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.2);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.4);
+}
+
+/* ============================================
+   Glass Card Base
+   ============================================ */
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--glass-shadow);
+  transition: all var(--transition-normal);
+}
+
+.glass-card:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--border-accent);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 0 0 20px rgba(79, 140, 255, 0.1);
+}
+
+/* ============================================
+   Glow Effects
+   ============================================ */
+.glow-blue {
+  box-shadow: 0 0 20px rgba(79, 140, 255, 0.15), 0 0 60px rgba(79, 140, 255, 0.05);
+}
+
+.glow-purple {
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.15), 0 0 60px rgba(168, 85, 247, 0.05);
+}
+
+.glow-green {
+  box-shadow: 0 0 20px rgba(52, 211, 153, 0.15), 0 0 60px rgba(52, 211, 153, 0.05);
+}
+
+/* ============================================
+   Animations
+   ============================================ */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes countUp {
+  from { opacity: 0; transform: scale(0.5); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.05) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-slide-in-left {
+  animation: slideInLeft 0.5s ease-out forwards;
+}
+
+/* Staggered animation delays for cards */
+.stagger-1 { animation-delay: 0.1s; opacity: 0; }
+.stagger-2 { animation-delay: 0.2s; opacity: 0; }
+.stagger-3 { animation-delay: 0.3s; opacity: 0; }
+.stagger-4 { animation-delay: 0.4s; opacity: 0; }
+.stagger-5 { animation-delay: 0.5s; opacity: 0; }
+
+/* ============================================
+   Loading Skeleton
+   ============================================ */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.03) 25%,
+    rgba(255, 255, 255, 0.06) 50%,
+    rgba(255, 255, 255, 0.03) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: var(--radius-sm);
+}
+
+/* ============================================
+   Gradient Text
+   ============================================ */
+.gradient-text {
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-text-accent {
+  background: var(--gradient-accent);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ============================================
+   Background Ambient Effects
+   ============================================ */
+.ambient-glow {
+  position: fixed;
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  filter: blur(150px);
+  opacity: 0.08;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.ambient-glow-1 {
+  top: -200px;
+  right: -200px;
+  background: var(--accent-blue);
+}
+
+.ambient-glow-2 {
+  bottom: -200px;
+  left: -200px;
+  background: var(--accent-purple);
+}
+
+.ambient-glow-3 {
+  top: 40%;
+  left: 50%;
+  background: var(--accent-cyan);
+  width: 400px;
+  height: 400px;
+  opacity: 0.04;
+}
