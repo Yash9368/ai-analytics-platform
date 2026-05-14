@@ -1,68 +1,45 @@
-/* ============================================
-   Main Page — Dashboard Entry Point
-   
-   This is the root page of the app.
-   It composes Sidebar + Header + Dashboard
-   into a full application layout.
-   ============================================ */
-
-"use client";
-
-import React, { useState } from "react";
-import Sidebar from "@/components/Sidebar";
-import Header from "@/components/Header";
-import Dashboard from "@/components/Dashboard";
-
 export default function Home() {
-  // ---- State ----
-  const [activeNav, setActiveNav] = useState("dashboard");
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [dateRange, setDateRange] = useState("28d");
-  const [loading, setLoading] = useState(false);
-
-  // ---- Refresh Handler ----
-  const handleRefresh = () => {
-    setLoading(true);
-    // The useAnalytics hook handles the actual fetch
-    // We just trigger a re-render by updating dateRange state
-    setDateRange((prev) => prev); // Force re-render
-    setTimeout(() => setLoading(false), 1200);
-  };
-
   return (
-    <div className="flex h-screen overflow-hidden">
-      {/* ---- Sidebar ---- */}
-      <Sidebar
-        activeItem={activeNav}
-        onItemClick={setActiveNav}
-        collapsed={sidebarCollapsed}
-        onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-      />
+    <main className="min-h-screen bg-gray-100 p-10">
 
-      {/* ---- Main Content Area ---- */}
-      <main
-        className="flex-1 flex flex-col overflow-hidden transition-all duration-300"
-        style={{
-          marginLeft: sidebarCollapsed ? "72px" : "var(--sidebar-width)",
-        }}
-      >
-        {/* Header */}
-        <Header
-          dateRange={dateRange}
-          onDateRangeChange={setDateRange}
-          onRefresh={handleRefresh}
-          loading={loading}
-        />
+      <h1 className="text-4xl font-bold mb-8">
+        AI Analytics Dashboard
+      </h1>
 
-        {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto p-6">
-          <Dashboard
-            dateRange={dateRange}
-            loading={loading}
-            setLoading={setLoading}
-          />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+        <div className="bg-white p-6 rounded-xl shadow">
+          <h2 className="text-xl font-semibold">
+            Users
+          </h2>
+
+          <p className="text-3xl mt-4">
+            0
+          </p>
         </div>
-      </main>
-    </div>
+
+        <div className="bg-white p-6 rounded-xl shadow">
+          <h2 className="text-xl font-semibold">
+            Sessions
+          </h2>
+
+          <p className="text-3xl mt-4">
+            0
+          </p>
+        </div>
+
+        <div className="bg-white p-6 rounded-xl shadow">
+          <h2 className="text-xl font-semibold">
+            Bounce Rate
+          </h2>
+
+          <p className="text-3xl mt-4">
+            0%
+          </p>
+        </div>
+
+      </div>
+
+    </main>
   );
 }
