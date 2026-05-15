@@ -1,6 +1,13 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
+
+/* ============================================
+   GA4 Configuration
+   Measurement ID from Google Analytics 4
+   ============================================ */
+const GA_MEASUREMENT_ID = "G-YLV9FNB9Q2";
 
 /* ============================================
    Font Configuration
@@ -33,7 +40,8 @@ export const metadata: Metadata = {
 
 /* ============================================
    Root Layout
-   Wraps all pages with fonts, background effects
+   Wraps all pages with fonts, GA4 tracking,
+   and background effects.
    ============================================ */
 export default function RootLayout({
   children,
@@ -42,6 +50,26 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${inter.variable} h-full antialiased`}>
+      <head>
+        {/* ---- Google Analytics 4 (GA4) ---- */}
+        {/* Loads the gtag.js library asynchronously */}
+        <Script
+          src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
+          strategy="afterInteractive"
+        />
+        {/* Initializes GA4 with your Measurement ID */}
+        <Script id="ga4-init" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '${GA_MEASUREMENT_ID}', {
+              page_title: document.title,
+              send_page_view: true
+            });
+          `}
+        </Script>
+      </head>
       <body className="min-h-full flex flex-col">
         {/* Ambient background glow effects */}
         <div className="ambient-glow ambient-glow-1" aria-hidden="true" />
