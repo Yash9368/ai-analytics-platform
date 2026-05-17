@@ -10,6 +10,8 @@ Architecture:
                                    → Claude MCP Server (Phase 8)
 """
 
+import os
+from pathlib import Path
 import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -30,6 +32,24 @@ logger = logging.getLogger(__name__)
 # ============================================
 # Initialize FastAPI Application
 # ============================================
+# ============================================
+# Render OAuth Credential Recreation
+# ============================================
+
+credentials_dir = Path("credentials")
+credentials_dir.mkdir(exist_ok=True)
+
+client_secret_env = os.getenv("GOOGLE_CLIENT_SECRET_JSON")
+token_env = os.getenv("GOOGLE_TOKEN_JSON")
+
+if client_secret_env:
+    with open(credentials_dir / "client_secret.json", "w") as f:
+        f.write(client_secret_env)
+
+if token_env:
+    with open(credentials_dir / "token.json", "w") as f:
+        f.write(token_env)
+
 app = FastAPI(
     title="AI Analytics Platform API",
     description="Production-grade API for Google Analytics 4 data with AI-powered insights",
