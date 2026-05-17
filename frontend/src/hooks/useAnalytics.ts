@@ -7,6 +7,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import * as api from "@/services/api";
 
 // ============================================
 // Type Definitions
@@ -148,17 +149,31 @@ export function useAnalytics(dateRange: string = "28d") {
       setLoading(true);
       setError(null);
 
-      // Phase 2: Using mock data
-      // Phase 7: Replace with actual API calls
-      await new Promise((resolve) => setTimeout(resolve, 800)); // Simulate network delay
+      // Fetch all GA4 data in parallel for speed
+      const [
+        overviewRes,
+        trafficRes,
+        devicesRes,
+        topPagesRes,
+      ] = await Promise.all([
+        api.getAnalyticsOverview(dateRange),
+        api.getTrafficData(dateRange),
+        api.getDeviceData(dateRange),
+        api.getTopPages(dateRange)
+      ]);
 
-      setOverview(MOCK_OVERVIEW);
-      setTraffic(MOCK_TRAFFIC);
-      setDevices(MOCK_DEVICES);
-      setTopPages(MOCK_TOP_PAGES);
+      setOverview(overviewRes.data);
+      // The backend wraps lists in a "data" property (e.g., { data: [...] })
+      setTraffic(trafficRes.data.data);
+      setDevices(devicesRes.data.data);
+      setTopPages(topPagesRes.data.data);
+      
+      // Keep insights mocked until Phase 8 (MCP Integration)
       setInsights(MOCK_INSIGHTS);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch analytics data");
+      
+    } catch (err: any) {
+      console.error("Analytics fetch error:", err);
+      setError(err.response?.data?.detail || err.message || "Failed to fetch analytics data from backend");
     } finally {
       setLoading(false);
     }

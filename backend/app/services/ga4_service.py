@@ -68,30 +68,37 @@ class GA4Service:
     def _initialize_client(self):
         """
         Try to authenticate with GA4 using available credentials.
-        Supports: JSON file path OR JSON string in env var.
+        Supports: OAuth token.json, local JSON file, or JSON string in env var.
         """
         try:
             credentials = None
+            scopes = ["https://www.googleapis.com/auth/analytics.readonly"]
 
-            # Method 1: JSON credentials as environment variable string
-            # Used in production (Render) where you can't upload files
-            ga4_creds_json = os.getenv("GA4_CREDENTIALS_JSON")
-            if ga4_creds_json:
+            # Method 1: OAuth token.json (User Consent Flow)
+            token_path = Path(__file__).parent.parent.parent / "credentials" / "token.json"
+            if token_path.exists():
+                logger.info("Using OAuth2 credentials from token.json")
+                from google.oauth2.credentials import Credentials
+                credentials = Credentials.from_authorized_user_file(str(token_path), scopes)
+
+            # Method 2: JSON credentials as environment variable string
+            elif os.getenv("GA4_CREDENTIALS_JSON"):
+                ga4_creds_json = os.getenv("GA4_CREDENTIALS_JSON")
                 logger.info("Using GA4 credentials from environment variable")
                 creds_dict = json.loads(ga4_creds_json)
                 credentials = service_account.Credentials.from_service_account_info(
                     creds_dict,
-                    scopes=["https://www.googleapis.com/auth/analytics.readonly"],
+                    scopes=scopes,
                 )
 
-            # Method 2: JSON key file path (local development)
+            # Method 3: JSON key file path (local development)
             elif settings.GA4_CREDENTIALS_PATH:
                 creds_path = Path(settings.GA4_CREDENTIALS_PATH)
                 if creds_path.exists():
                     logger.info(f"Using GA4 credentials from file: {creds_path}")
                     credentials = service_account.Credentials.from_service_account_file(
                         str(creds_path),
-                        scopes=["https://www.googleapis.com/auth/analytics.readonly"],
+                        scopes=scopes,
                     )
                 else:
                     logger.warning(f"Credentials file not found: {creds_path}")

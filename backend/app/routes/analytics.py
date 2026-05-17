@@ -139,3 +139,40 @@ async def get_top_pages(
     except Exception as e:
         logger.error(f"Error fetching top pages: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/insights")
+async def get_ai_insights(
+    date_range: str = Query(default="28d", description="Date range: today, yesterday, 7d, 28d, 90d, 12m")
+):
+    """
+    Get AI-generated actionable insights using Claude based on GA4 data.
+    """
+    try:
+        from app.services.ai_service import ai_service
+        
+        if not ga4_service.is_connected():
+            raise HTTPException(
+                status_code=503,
+                detail="GA4 service not connected. Check credentials and property ID."
+            )
+        
+        if not ai_service.client:
+            raise HTTPException(
+                status_code=503,
+                detail="Anthropic API key not configured. Cannot generate AI insights."
+            )
+
+        # Fetch data to feed into Claude
+        overview = ga4_service.get_overview(date_range)
+        traffic = ga4_service.get_traffic(date_range)
+        devices = ga4_service.get_devices(date_range)
+        top_pages = ga4_service.get_top_pages(date_range, limit=5)
+        
+        insights = ai_service.generate_insights(overview, traffic, devices, top_pages)
+        return {"data": insights}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error generating insights: {e}")
+        raise HTTPException(status_code=500, detail=str(e))

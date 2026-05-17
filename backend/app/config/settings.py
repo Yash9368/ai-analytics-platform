@@ -45,6 +45,7 @@ class Settings:
         "GA4_CREDENTIALS_PATH",
         str(Path(__file__).resolve().parent.parent.parent / "credentials" / "ga4-service-account.json")
     )
+    GA4_CREDENTIALS_JSON: str | None = os.getenv("GA4_CREDENTIALS_JSON", None)
 
     # --- Anthropic (Claude AI) ---
     ANTHROPIC_API_KEY: str = os.getenv("ANTHROPIC_API_KEY", "")

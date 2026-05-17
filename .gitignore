@@ -14,6 +14,9 @@
 # CRITICAL: Never commit service account keys
 credentials/
 *.json
+token.pickle
+token.json
+client_secret.json
 !package.json
 !package-lock.json
 !tsconfig.json
