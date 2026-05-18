@@ -322,35 +322,52 @@ class GA4Service:
     def get_realtime(self) -> dict:
         """
         Get near real-time analytics data (last 30 minutes).
-        Returns active users, device category breakdown, and top pages.
+        Returns active users, device category breakdown, top pages, and minute-by-minute traffic.
         """
         from google.analytics.data_v1beta.types import RunRealtimeReportRequest
 
         if not self.client:
             raise ConnectionError("GA4 client not initialized. Check credentials.")
 
-        # Request active users and device breakdown
-        request = RunRealtimeReportRequest(
+        # 1. Request KPI totals (activeUsers, screenPageViews, eventCount)
+        total_request = RunRealtimeReportRequest(
+            property=f"properties/{self.property_id}",
+            metrics=[
+                Metric(name="activeUsers"),
+                Metric(name="screenPageViews"),
+                Metric(name="eventCount")
+            ]
+        )
+        total_response = self.client.run_realtime_report(total_request)
+        
+        active_users = 0
+        page_views = 0
+        event_count = 0
+        
+        if total_response.rows:
+            metrics_values = total_response.rows[0].metric_values
+            active_users = int(metrics_values[0].value) if len(metrics_values) > 0 and metrics_values[0].value else 0
+            page_views = int(metrics_values[1].value) if len(metrics_values) > 1 and metrics_values[1].value else 0
+            event_count = int(metrics_values[2].value) if len(metrics_values) > 2 and metrics_values[2].value else 0
+
+        # 2. Request device breakdown in real-time
+        device_request = RunRealtimeReportRequest(
             property=f"properties/{self.property_id}",
             metrics=[Metric(name="activeUsers")],
             dimensions=[Dimension(name="deviceCategory")],
         )
-
-        response = self.client.run_realtime_report(request)
-        active_users = 0
+        device_response = self.client.run_realtime_report(device_request)
         devices = []
-
-        for row in response.rows:
+        for row in device_response.rows:
             count = int(row.metric_values[0].value)
             device = row.dimension_values[0].value.lower()
-            active_users += count
             devices.append({
                 "name": device.capitalize(),
                 "value": count,
                 "color": DEVICE_COLORS.get(device, "#64748b")
             })
 
-        # Request top active pages in real-time
+        # 3. Request top active pages in real-time
         page_request = RunRealtimeReportRequest(
             property=f"properties/{self.property_id}",
             metrics=[Metric(name="activeUsers")],
@@ -365,10 +382,42 @@ class GA4Service:
                 "activeUsers": int(row.metric_values[0].value)
             })
 
+        # 4. Request minute-by-minute timeline (last 30 minutes)
+        timeline_request = RunRealtimeReportRequest(
+            property=f"properties/{self.property_id}",
+            metrics=[Metric(name="activeUsers"), Metric(name="screenPageViews")],
+            dimensions=[Dimension(name="minutesAgo")],
+        )
+        timeline_response = self.client.run_realtime_report(timeline_request)
+        
+        timeline_dict = {i: {"users": 0, "pageViews": 0} for i in range(30)}
+        for row in timeline_response.rows:
+            try:
+                min_ago = int(row.dimension_values[0].value)
+                if 0 <= min_ago < 30:
+                    timeline_dict[min_ago] = {
+                        "users": int(row.metric_values[0].value),
+                        "pageViews": int(row.metric_values[1].value)
+                    }
+            except (ValueError, IndexError):
+                continue
+                
+        timeline = []
+        for i in range(29, -1, -1):
+            timeline.append({
+                "date": f"{i}m ago" if i > 0 else "Now",
+                "users": timeline_dict[i]["users"],
+                "pageViews": timeline_dict[i]["pageViews"]
+            })
+
         return {
             "activeUsers": active_users,
+            "pageViews": page_views,
+            "eventCount": event_count,
+            "avgEventsPerUser": round(event_count / active_users, 1) if active_users > 0 else 0.0,
             "devices": devices,
-            "activePages": active_pages
+            "activePages": active_pages,
+            "timeline": timeline
         }
 
     # ============================================
