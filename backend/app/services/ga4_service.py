@@ -63,6 +63,8 @@ class GA4Service:
         """Initialize the GA4 Data API client with credentials."""
         self.property_id = settings.GA4_PROPERTY_ID
         self.client: Optional[BetaAnalyticsDataClient] = None
+        self._realtime_cache = None
+        self._overview_cache = {}
         self._initialize_client()
 
     def _initialize_client(self):
@@ -135,6 +137,17 @@ class GA4Service:
         
         Returns: totalUsers, sessions, pageViews, bounceRate, etc.
         """
+        import time
+
+        # Check cache (valid for 1 hour)
+        now = time.time()
+        cache_key = f"overview_{date_range}"
+        if cache_key in self._overview_cache:
+            cache_entry = self._overview_cache[cache_key]
+            if now - cache_entry["timestamp"] < 3600:
+                logger.info(f"Serving overview API response for {date_range} from cache")
+                return cache_entry["data"]
+
         start_date, end_date = get_date_range(date_range)
 
         request = RunReportRequest(
@@ -161,7 +174,7 @@ class GA4Service:
 
             avg_duration = float(metrics[4].value) if metrics[4].value else 0
 
-            return AnalyticsOverview(
+            result = AnalyticsOverview(
                 totalUsers=int(metrics[0].value),
                 totalSessions=int(metrics[1].value),
                 pageViews=int(metrics[2].value),
@@ -174,8 +187,20 @@ class GA4Service:
                 pageViewsTrend=0.0,
                 bounceTrend=0.0,
             )
+            
+            self._overview_cache[cache_key] = {
+                "data": result,
+                "timestamp": now
+            }
+            
+            return result
 
-        return AnalyticsOverview()
+        result_empty = AnalyticsOverview()
+        self._overview_cache[cache_key] = {
+            "data": result_empty,
+            "timestamp": now
+        }
+        return result_empty
 
     # ============================================
     # Traffic Over Time
@@ -186,6 +211,15 @@ class GA4Service:
         
         Returns: List of {date, users, sessions, pageViews} per day.
         """
+        import time
+        now = time.time()
+        cache_key = f"traffic_{date_range}"
+        if cache_key in self._overview_cache:
+            cache_entry = self._overview_cache[cache_key]
+            if now - cache_entry["timestamp"] < 3600:
+                logger.info(f"Serving traffic API response for {date_range} from cache")
+                return cache_entry["data"]
+
         start_date, end_date = get_date_range(date_range)
 
         request = RunReportRequest(
@@ -227,6 +261,10 @@ class GA4Service:
                 )
             )
 
+        self._overview_cache[cache_key] = {
+            "data": data_points,
+            "timestamp": now
+        }
         return data_points
 
     # ============================================
@@ -238,6 +276,15 @@ class GA4Service:
         
         Returns: List of {name, value (%), color} per device type.
         """
+        import time
+        now = time.time()
+        cache_key = f"devices_{date_range}"
+        if cache_key in self._overview_cache:
+            cache_entry = self._overview_cache[cache_key]
+            if now - cache_entry["timestamp"] < 3600:
+                logger.info(f"Serving devices API response for {date_range} from cache")
+                return cache_entry["data"]
+
         start_date, end_date = get_date_range(date_range)
 
         request = RunReportRequest(
@@ -252,7 +299,12 @@ class GA4Service:
         # Calculate total for percentages
         total = sum(int(row.metric_values[0].value) for row in response.rows)
         if total == 0:
-            return []
+            result_empty = []
+            self._overview_cache[cache_key] = {
+                "data": result_empty,
+                "timestamp": now
+            }
+            return result_empty
 
         devices = []
         for row in response.rows:
@@ -270,6 +322,11 @@ class GA4Service:
 
         # Sort by percentage descending
         devices.sort(key=lambda d: d.value, reverse=True)
+        
+        self._overview_cache[cache_key] = {
+            "data": devices,
+            "timestamp": now
+        }
         return devices
 
     # ============================================
@@ -281,6 +338,15 @@ class GA4Service:
         
         Returns: List of {page, views, avgTime} sorted by views.
         """
+        import time
+        now = time.time()
+        cache_key = f"top_pages_{date_range}_{limit}"
+        if cache_key in self._overview_cache:
+            cache_entry = self._overview_cache[cache_key]
+            if now - cache_entry["timestamp"] < 3600:
+                logger.info(f"Serving top pages API response for {date_range} from cache")
+                return cache_entry["data"]
+
         start_date, end_date = get_date_range(date_range)
 
         request = RunReportRequest(
@@ -314,6 +380,10 @@ class GA4Service:
                 )
             )
 
+        self._overview_cache[cache_key] = {
+            "data": pages,
+            "timestamp": now
+        }
         return pages
 
     # ============================================
@@ -324,10 +394,17 @@ class GA4Service:
         Get near real-time analytics data (last 30 minutes).
         Returns active users, device category breakdown, top pages, and minute-by-minute traffic.
         """
+        import time
         from google.analytics.data_v1beta.types import RunRealtimeReportRequest
 
         if not self.client:
             raise ConnectionError("GA4 client not initialized. Check credentials.")
+
+        # Check in-memory cache (valid for 15 seconds)
+        now = time.time()
+        if self._realtime_cache and now - self._realtime_cache["timestamp"] < 15:
+            logger.info("Serving realtime API response from cache")
+            return self._realtime_cache["data"]
 
         # 1. Request KPI totals (activeUsers, screenPageViews, eventCount)
         total_request = RunRealtimeReportRequest(
@@ -410,7 +487,7 @@ class GA4Service:
                 "pageViews": timeline_dict[i]["pageViews"]
             })
 
-        return {
+        result = {
             "activeUsers": active_users,
             "pageViews": page_views,
             "eventCount": event_count,
@@ -419,6 +496,13 @@ class GA4Service:
             "activePages": active_pages,
             "timeline": timeline
         }
+        
+        self._realtime_cache = {
+            "data": result,
+            "timestamp": now
+        }
+        
+        return result
 
     # ============================================
     # Health Check
