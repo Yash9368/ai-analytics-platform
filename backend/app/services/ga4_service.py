@@ -354,7 +354,7 @@ class GA4Service:
         page_request = RunRealtimeReportRequest(
             property=f"properties/{self.property_id}",
             metrics=[Metric(name="activeUsers")],
-            dimensions=[Dimension(name="pagePath")],
+            dimensions=[Dimension(name="unifiedScreenName")],
             limit=5
         )
         page_response = self.client.run_realtime_report(page_request)
