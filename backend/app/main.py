@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 # Render OAuth Credential Recreation
 # ============================================
 
-credentials_dir = Path("credentials")
+credentials_dir = Path(__file__).parent.parent / "credentials"
 credentials_dir.mkdir(exist_ok=True)
 
 client_secret_env = os.getenv("GOOGLE_CLIENT_SECRET_JSON")
