@@ -16,6 +16,24 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+# ============================================
+# Render OAuth Credential Recreation
+# (MUST HAPPEN BEFORE IMPORTING ROUTES)
+# ============================================
+credentials_dir = Path(__file__).parent.parent / "credentials"
+credentials_dir.mkdir(exist_ok=True)
+
+client_secret_env = os.getenv("GOOGLE_CLIENT_SECRET_JSON")
+token_env = os.getenv("GOOGLE_TOKEN_JSON")
+
+if client_secret_env:
+    with open(credentials_dir / "client_secret.json", "w") as f:
+        f.write(client_secret_env)
+
+if token_env:
+    with open(credentials_dir / "token.json", "w") as f:
+        f.write(token_env)
+
 from app.config.settings import settings
 from app.routes import analytics, health
 
@@ -32,23 +50,6 @@ logger = logging.getLogger(__name__)
 # ============================================
 # Initialize FastAPI Application
 # ============================================
-# ============================================
-# Render OAuth Credential Recreation
-# ============================================
-
-credentials_dir = Path(__file__).parent.parent / "credentials"
-credentials_dir.mkdir(exist_ok=True)
-
-client_secret_env = os.getenv("GOOGLE_CLIENT_SECRET_JSON")
-token_env = os.getenv("GOOGLE_TOKEN_JSON")
-
-if client_secret_env:
-    with open(credentials_dir / "client_secret.json", "w") as f:
-        f.write(client_secret_env)
-
-if token_env:
-    with open(credentials_dir / "token.json", "w") as f:
-        f.write(token_env)
 
 app = FastAPI(
     title="AI Analytics Platform API",
