@@ -317,6 +317,61 @@ class GA4Service:
         return pages
 
     # ============================================
+    # Real-time Reporting
+    # ============================================
+    def get_realtime(self) -> dict:
+        """
+        Get near real-time analytics data (last 30 minutes).
+        Returns active users, device category breakdown, and top pages.
+        """
+        from google.analytics.data_v1beta.types import RunRealtimeReportRequest
+
+        if not self.client:
+            raise ConnectionError("GA4 client not initialized. Check credentials.")
+
+        # Request active users and device breakdown
+        request = RunRealtimeReportRequest(
+            property=f"properties/{self.property_id}",
+            metrics=[Metric(name="activeUsers")],
+            dimensions=[Dimension(name="deviceCategory")],
+        )
+
+        response = self.client.run_realtime_report(request)
+        active_users = 0
+        devices = []
+
+        for row in response.rows:
+            count = int(row.metric_values[0].value)
+            device = row.dimension_values[0].value.lower()
+            active_users += count
+            devices.append({
+                "name": device.capitalize(),
+                "value": count,
+                "color": DEVICE_COLORS.get(device, "#64748b")
+            })
+
+        # Request top active pages in real-time
+        page_request = RunRealtimeReportRequest(
+            property=f"properties/{self.property_id}",
+            metrics=[Metric(name="activeUsers")],
+            dimensions=[Dimension(name="pagePath")],
+            limit=5
+        )
+        page_response = self.client.run_realtime_report(page_request)
+        active_pages = []
+        for row in page_response.rows:
+            active_pages.append({
+                "page": row.dimension_values[0].value,
+                "activeUsers": int(row.metric_values[0].value)
+            })
+
+        return {
+            "activeUsers": active_users,
+            "devices": devices,
+            "activePages": active_pages
+        }
+
+    # ============================================
     # Health Check
     # ============================================
     def is_connected(self) -> bool:

@@ -20,8 +20,8 @@ import mcp.types as types
 
 from app.services.ga4_service import ga4_service
 
-# Set up basic logging
-logging.basicConfig(level=logging.INFO)
+# Set up basic logging to stderr to avoid corrupting MCP stdout
+logging.basicConfig(level=logging.INFO, stream=sys.stderr)
 logger = logging.getLogger("mcp_server")
 
 server = Server("ga4-analytics-mcp")

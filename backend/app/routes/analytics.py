@@ -176,3 +176,26 @@ async def get_ai_insights(
     except Exception as e:
         logger.error(f"Error generating insights: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/realtime")
+async def get_realtime_data():
+    """
+    Get near real-time analytics data (active users, devices, top pages in the last 30 minutes).
+    """
+    try:
+        if not ga4_service.is_connected():
+            raise HTTPException(
+                status_code=503,
+                detail="GA4 service not connected. Check credentials and property ID."
+            )
+        
+        realtime_data = ga4_service.get_realtime()
+        return realtime_data
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching realtime data: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
