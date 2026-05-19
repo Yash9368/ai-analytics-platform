@@ -35,7 +35,7 @@ if token_env:
         f.write(token_env)
 
 from app.config.settings import settings
-from app.routes import analytics, health
+from app.routes import analytics, health, leads
 
 # ============================================
 # Logging Configuration
@@ -76,6 +76,7 @@ app.add_middleware(
 # ============================================
 app.include_router(health.router)         # / and /health
 app.include_router(analytics.router)      # /api/analytics/*
+app.include_router(leads.router)          # /api/leads/*
 
 # ============================================
 # Startup Event
