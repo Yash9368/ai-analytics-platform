@@ -1,10 +1,12 @@
 import os
 import json
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, BackgroundTasks
 from pydantic import BaseModel
 from typing import List, Optional
+from app.services.email_service import EmailService
 
 router = APIRouter(prefix="/api/leads", tags=["leads"])
+
 
 # Store in standard credentials folder
 JSON_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "credentials", "leads.json")
@@ -45,14 +47,35 @@ def get_leads():
     return load_leads_from_file()
 
 @router.post("", response_model=LeadSchema)
-def create_lead(lead: LeadSchema):
+def create_lead(lead: LeadSchema, background_tasks: BackgroundTasks):
     leads = load_leads_from_file()
     # Check if duplicate ID
     if any(l["id"] == lead.id for l in leads):
         return lead
     leads.insert(0, lead.dict())
     save_leads_to_file(leads)
+
+    # Queue non-blocking automated email notifications in background
+    background_tasks.add_task(
+        EmailService.send_lead_confirmation,
+        customer_name=lead.full_name,
+        customer_email=lead.email,
+        company=lead.company_name,
+        phone=lead.phone_number,
+        message=lead.message
+    )
+    background_tasks.add_task(
+        EmailService.send_admin_notification,
+        lead_id=lead.id,
+        lead_name=lead.full_name,
+        lead_email=lead.email,
+        company=lead.company_name,
+        phone=lead.phone_number,
+        message=lead.message
+    )
+
     return lead
+
 
 @router.put("/{lead_id}/status", response_model=LeadSchema)
 def update_status(lead_id: str, status_payload: StatusUpdateSchema):
